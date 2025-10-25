@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Interactive Quiz App</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Poppins", Arial, sans-serif;
+      background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+    }
+
+    .container {
+      width: 420px;
+      background: #fff;
+      padding: 28px;
+      border-radius: 15px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    h1 {
+      margin: 0 0 16px;
+      font-size: 24px;
+      color: #333;
+    }
+
+    input[type="text"] {
+      width: 90%;
+      padding: 10px;
+      margin: 12px 0;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+      outline: none;
+      transition: border 0.3s ease;
+    }
+
+    input[type="text"]:focus {
+      border-color: #3b82f6;
+    }
+
+    button {
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #2563eb;
+    }
+
+    .question { font-size: 18px; margin: 18px 0; min-height: 48px; color: #333; }
+    .answers { display: grid; gap: 10px; margin-top: 8px; }
+    .answers button {
+      padding: 10px 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 15px;
+      background: #3b82f6;
+      color: white;
+      transition: transform .06s ease, background .2s ease;
+    }
+    .answers button:active { transform: scale(.98); }
+    .answers button[disabled] { opacity: 0.9; cursor: default; }
+
+    #next-btn {
+      margin-top: 14px;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      background: #10b981;
+      color: white;
+      font-size: 15px;
+      cursor: pointer;
+      display: none;
+    }
+
+    #result { margin-top: 12px; font-weight: 600; color: #111827; }
+  </style>
+</head>
+
+<body>
+  <div class="container" id="login-page">
+    <h1>Welcome to the Quiz</h1>
+    <p>Please enter your name to start:</p>
+    <input type="text" id="username" placeholder="Enter your name" />
+    <br />
+    <button id="start-btn">Start Quiz</button>
+  </div>
+
+  <div class="container" id="quiz-page" style="display:none;">
+    <h1>Interactive Quiz App</h1>
+    <div id="question" class="question"></div>
+    <div id="answers" class="answers"></div>
+    <button id="next-btn">Next</button>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    // Quiz Data
+    const quizData = [
+      {
+        question: "What does HTML stand for?",
+        options: [
+          "Hyper Text Markup Language",
+          "Home Tool Markup Language",
+          "Hyperlinks and Text Marking Language",
+          "Hyper Transfer Makeup Language"
+        ],
+        answer: "Hyper Text Markup Language"
+      },
+      {
+        question: "Which language is used for styling web pages?",
+        options: ["HTML", "jQuery", "CSS", "XML"],
+        answer: "CSS"
+      },
+      {
+        question: "Which is not a JavaScript framework?",
+        options: ["Python Script", "React", "Angular", "Vue"],
+        answer: "Python Script"
+      },
+      {
+        question: "Which language is commonly used to connect to databases?",
+        options: ["HTML", "PHP", "CSS", "Markdown"],
+        answer: "PHP"
+      }
+    ];
+
+    // DOM Elements
+    const loginPage = document.getElementById('login-page');
+    const quizPage = document.getElementById('quiz-page');
+    const startBtn = document.getElementById('start-btn');
+    const usernameInput = document.getElementById('username');
+    const questionEl = document.getElementById('question');
+    const answersEl = document.getElementById('answers');
+    const nextBtn = document.getElementById('next-btn');
+    const resultEl = document.getElementById('result');
+
+    // State
+    let currentIndex = 0;
+    let score = 0;
+    let quizEnded = false;
+    let username = "";
+
+    startBtn.addEventListener("click", () => {
+      username = usernameInput.value.trim();
+      if (username === "") {
+        alert("Please enter your name before starting!");
+        return;
+      }
+      loginPage.style.display = "none";
+      quizPage.style.display = "block";
+      renderQuestion();
+    });
+
+    nextBtn.addEventListener("click", handleNext);
+
+    function renderQuestion() {
+      quizEnded = false;
+      resultEl.textContent = '';
+      nextBtn.style.display = 'none';
+      nextBtn.textContent = 'Next';
+      const item = quizData[currentIndex];
+      questionEl.textContent = '${currentIndex + 1}. ${item.question}';
+      answersEl.innerHTML = '';
+      item.options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.textContent = opt;
+        btn.type = 'button';
+        btn.addEventListener('click', onSelectAnswer);
+        answersEl.appendChild(btn);
+      });
+    }
+
+    function onSelectAnswer(e) {
+      const selectedText = e.currentTarget.textContent;
+      const correct = quizData[currentIndex].answer;
+      const all = answersEl.querySelectorAll('button');
+      all.forEach(btn => {
+        btn.disabled = true;
+        if (btn.textContent === correct) {
+          btn.style.background = '#10b981';
+        } else {
+          btn.style.background = '#ef4444';
+        }
+        btn.style.color = '#fff';
+      });
+
+      if (selectedText === correct) {
+        score++;
+        resultEl.textContent = "Correct ✅";
+      } else {
+        resultEl.textContent = 'Wrong ❌ — correct: ${correct}';
+      }
+      nextBtn.style.display = 'inline-block';
+    }
+
+    function handleNext() {
+      if (quizEnded) {
+        restartQuiz();
+        return;
+      }
+      currentIndex++;
+      if (currentIndex < quizData.length) {
+        renderQuestion();
+      } else {
+        showScore();
+      }
+    }
+
+    function showScore() {
+      quizEnded = true;
+      questionEl.textContent = '🎉 Quiz Completed, ${username}!';
+      answersEl.innerHTML = '';
+      resultEl.textContent = 'Your Score: ${score} / ${quizData.length}';
+      nextBtn.textContent = 'Play Again';
+      nextBtn.style.display = 'inline-block';
+    }
+
+    function restartQuiz() {
+      currentIndex = 0;
+      score = 0;
+      quizEnded = false;
+      nextBtn.textContent = 'Next';
+      loginPage.style.display = "block";
+      quizPage.style.display = "none";
+      usernameInput.value = "";
+    }
+  </script>
+</body>
+</html>
